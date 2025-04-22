@@ -1,0 +1,149 @@
+{
+    "log": {
+        "logLevel": "warning"
+    },
+    "dns": {
+        "hosts": {
+            "dns.google": "8.8.8.8"
+        },
+        "servers": [
+            "https://1.1.1.1/dns-query",
+            "https://dns.google/dns-query",
+            "223.5.5.5",
+            "localhost"
+        ]
+    },
+    "routing": {
+        "domainMatcher": "hybrid",
+        "domainStrategy": "AsIs",
+        "rules": [
+            {
+                "type": "field",
+                "inboundTag": ["socks-inbound"],
+                "outboundTag": "direct-outbound"
+            },
+            {
+                "type": "field",
+                "ip": ["1.1.1.1", "8.8.8.8"],
+                "outboundTag": "vless-outbound"
+            },
+            {
+                "type": "field",
+                "ip": ["100.64.0.0/10", "223.5.5.5"],
+                "outboundTag": "direct-outbound"
+            },
+            {
+                "type": "field",
+                "domain": [
+                    "geosite:category-gov-ru",
+                    "geoip:ru",
+                    "domain:linuxquestions.org",
+                    "domain:su",
+                    "domain:ru"
+                ],
+                "outboundTag": "direct-outbound"
+            }
+        ]
+    },
+    "inbounds": [
+        {
+            "tag": "tproxy-inbound",
+            // _DOKODEMO_TPROXY_PORT
+            "port": 18889,
+            "protocol": "dokodemo-door",
+            "settings": {
+                "network": "tcp,udp",
+                "followRedirect": true
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "streamSettings": {
+                "sockopt": {
+                    "tproxy": "tproxy",
+                    "tcpFastOpen": true,
+                    "tcpcongestion": "bbr"
+                }
+            }
+        },
+        {
+            "tag": "socks-inbound",
+            "port": 1080,
+            "listen": "0.0.0.0",
+            "protocol": "socks",
+            "settings": {
+                "auth": "noauth",
+                "udp": true
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "tag": "vless-outbound",
+            "protocol": "vless",
+            "settings": {
+                "vnext": [
+                    {
+                        // of use xray socket
+                        //"listen": "@vless-proxy"
+
+                        // _VLESS_ADDRESS
+                        "address": "",
+                        // _VLESS_PORT
+                        "port": 443,
+                        "users": [
+                            {
+                                "encryption": "none",
+                                "flow": "xtls-rprx-vision",
+                                // _VLESS_USER_UUID
+                                "id": ""
+                            }
+                        ]
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "sockopt": {
+                    "mark": 201
+                },
+
+                "realitySettings": {
+                    "fingerprint": "chrome",
+                    // publicKey << xray x25519
+                    "publicKey": "",
+                    "serverName": "www.google.com",
+                    // shortId << openssl rand -hex 8
+                    "shortId": "",
+                    "spiderX": "/"
+                },
+                "security": "reality"
+            },
+            "mux": {
+                "enabled": true,
+                "concurrency": -1,
+                "xudpConcurrency": -1,
+                "xudpProxyUDP443": "skip"
+            }
+        },
+        {
+            "tag": "direct-outbound",
+            "protocol": "freedom",
+            "streamSettings": {
+                "sockopt": {
+                    "mark": 201
+                }
+            }
+        },
+        {
+            "tag": "dns-outbound",
+            "protocol": "dns",
+            "streamSettings": {
+                "sockopt": {
+                    "mark": 201
+                }
+            }
+        }
+    ]
+}
