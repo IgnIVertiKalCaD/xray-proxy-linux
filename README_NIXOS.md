@@ -1,5 +1,5 @@
 
-# xray-proxy-linux
+# xray-proxy-linux NixOS version
 
 ## VLESS + REALITY + Linux TPROXY
 
@@ -15,7 +15,7 @@ https://gozargah.github.io/marzban/en/docs/introduction
 
 ## PreSetup for NixOS
 ```
-networking.firewall.enable = false; 
+networking.firewall.enable = false;
 ```
 
 firewall is disabled. Why?
@@ -62,7 +62,7 @@ For **NixOS**:
 > /etc/nixos/configuration.nix
 
 ```nix
-networking.firewall.enable = false; 
+networking.firewall.enable = false;
 
 networking.iproute2.enable = true;
 
