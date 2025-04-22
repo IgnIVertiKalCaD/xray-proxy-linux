@@ -5,3 +5,5 @@ cp config.json /etc/xray
 
 mkdir /etc/nftables.d
 cp proxy.conf /etc/nftables.d
+
+echo "cool. Run nixos-rebuild test"
