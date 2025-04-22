@@ -1,3 +1,4 @@
+
 # xray-proxy-linux
 
 ## VLESS + REALITY + Linux TPROXY
@@ -6,20 +7,21 @@ This repository contains configuration files and settings for **VLESS + REALITY 
 
 ---
 
-## PreSetup for Nixos
+## Useful links
 
+https://gozargah.github.io/marzban/en/docs/introduction
+
+---
+
+## PreSetup for NixOS
 ```
-networking.firewall.enable = false; //это пиздец как очень важно для работы vpn. Вам это на домашней машине НАХУЙ не надо устанавливать, если вы стоите нахуй ЗА nat.
-
-networking.iproute2.enable = true;
-
-networking.nftables = {
-    enable = true;
-    flushRuleset = true;
-    flattenRulesetFile = true;
-    rulesetFile = "/etc/nftables.d/proxy.conf";
-};
+networking.firewall.enable = false; 
 ```
+
+firewall is disabled. Why?
+You don't fucking need to install this on your home machine if you stand the fuck FOR nat (router, ...).
+
+
 ## Setup
 
 To get started, open this repository in your favorite IDE and enter your values in the following variables:
@@ -33,139 +35,98 @@ The variables are marked with comments in the configuration files:
 
 #### Variables:
 
-- **TPROXY Port (optional):**  
+- **TPROXY Port (optional):**\
   `_DOKODEMO_TPROXY_PORT`
 
-- **VLESS Server Address:**  
+- **VLESS Server Address:**\
   `_VLESS_ADDRESS`
 
-- **VLESS Port:**  
+- **VLESS Port:**\
   `_VLESS_PORT`
 
-- **VLESS User UUID:**  
-  `_VLESS_USER_ID`
+- **VLESS User UUID:**\
+  `_VLESS_USER_UUID`
 
-- **REALITY Server Name (SNI):**  
-  `_REALITY_SERVER_NAME`
-
-- **REALITY Public Key:**  
+- **REALITY Public Key:**\
   `_REALITY_PUBLIC_KEY`
 
-- **REALITY Short ID:**  
+- **REALITY Short ID:**\
   `_REALITY_SHORT_ID`
 
 ---
 
-## Prerequisites
-
-Before proceeding with the installation, ensure that the following packages are installed:
-
-For **Ubuntu/Debian**:
-
-```bash
-sudo apt update && sudo apt install -y nftables iproute2
-```
-
-For **CentOS/RHEL**:
-
-```bash
-sudo yum install -y nftables iproute
-```
-
-For **Arch Linux**:
-
-```bash
-sudo pacman -S nftables iproute2
-```
-
-Ensure that the `nftables` service is enabled and running:
-
-```bash
-sudo systemctl enable nftables
-sudo systemctl start nftables
-```
+##  Prerequisites
 
 For **NixOS**:
 
-/etc/nixos/configuration.nix
+> /etc/nixos/configuration.nix
 
 ```nix
-networking.firewall.enable = false;
+networking.firewall.enable = false; 
+
 networking.iproute2.enable = true;
-```
----
 
-## Installing Xray Core
-
-Download and install the latest Xray binary from the [xray-core repository](https://github.com/XTLS/Xray-core/releases):
-
-```bash
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
-```
-
-Verify the installation:
-
-```bash
-xray --version
+networking.nftables = {
+    enable = true;
+    flushRuleset = true;
+    flattenRulesetFile = true;
+    rulesetFile = "/etc/nftables.d/proxy.conf";
+};
 ```
 
 ---
 
-## Installation Guide
+## Installing Xray Core (skip)
 
-### 1. Clone the Repository
+It doesn't have to be put in manually somehow.
+Xray is prescribed in the service. Xray is used from your pkgs. It will not be in the system/user environment. It is only in the service that calls xray from the pkgs.xray package.
+Get it?
+
+---
+
+## Install Configuration Files
+
+### 1. Init
+#### 1.1. Run script
 
 ```bash
-git clone https://github.com/IXLShizua/xray-proxy-linux.git
-cd xray-proxy-linux
+sh init.sh
 ```
 
-### 2. Configure the Settings
+#### 1.2. Connect xray-proxy.nix config to configuration.nix
+> /etc/nixos/configuration.nix
+```nix
+{ config, lib, pkgs, ... }:
 
-Open the necessary files in a text editor and update the required variables.
-
-### 3. Install Configuration Files
-
-#### 3.1 Xray Configuration
-
-Copy the Xray configuration file to the correct location:
-
-```bash
-mkdir -p /etc/xray
-cp config.json /etc/xray/config.json
+{
+  imports =
+    [
+      ./xray-proxy.nix
+	  ...
+    ];
+}
 ```
 
-#### 3.2 Systemd Service File
+### 2. Rebuild nixos
 
-Copy the systemd service file and enable it:
+> for tests
 
 ```bash
-cp xray-proxy.service /etc/systemd/system/xray-proxy.service
-systemctl daemon-reload
-systemctl enable xray-proxy
+nixos-rebuild test
 ```
 
-#### 3.3 Routing and Firewall Rules
-
-Ensure the nftables configuration is in place:
+> for prod
 
 ```bash
-mkdir -p /etc/nftables
-cp proxy.conf /etc/nftables/proxy.conf
+nixos-rebuild switch
 ```
 
 ---
 
-### 4. Start the Service
+### 3. Check the Service Status
 
 ```bash
-systemctl start xray-proxy
-```
-
-### 5. Check the Service Status
-
-```bash
-systemctl status xray-proxy
+systemctl status xray
 ```
 
 ---
@@ -173,4 +134,3 @@ systemctl status xray-proxy
 ## Contributing & Support
 
 For any questions or improvements, feel free to open an issue or submit a pull request.
-
