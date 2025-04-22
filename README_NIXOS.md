@@ -6,6 +6,20 @@ This repository contains configuration files and settings for **VLESS + REALITY 
 
 ---
 
+## PreSetup for Nixos
+
+```
+networking.firewall.enable = false; //это пиздец как очень важно для работы vpn. Вам это на домашней машине НАХУЙ не надо устанавливать, если вы стоите нахуй ЗА nat.
+
+networking.iproute2.enable = true;
+
+networking.nftables = {
+    enable = true;
+    flushRuleset = true;
+    flattenRulesetFile = true;
+    rulesetFile = "/etc/nftables.d/proxy.conf";
+};
+```
 ## Setup
 
 To get started, open this repository in your favorite IDE and enter your values in the following variables:
@@ -71,6 +85,14 @@ sudo systemctl enable nftables
 sudo systemctl start nftables
 ```
 
+For **NixOS**:
+
+/etc/nixos/configuration.nix
+
+```nix
+networking.firewall.enable = false;
+networking.iproute2.enable = true;
+```
 ---
 
 ## Installing Xray Core
