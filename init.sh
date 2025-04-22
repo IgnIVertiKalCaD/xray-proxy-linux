@@ -1,3 +1,5 @@
+#!/bin/bash
+
 mkdir /etc/xray
 cp config.json /etc/xray
 
